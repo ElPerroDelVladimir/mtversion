@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+chmod a+x /etc/init.d/mtversion
+chmod ug+rw /etc/mtversion
+update-rc.d mtversion defaults
