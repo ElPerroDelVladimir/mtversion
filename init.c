@@ -24,7 +24,7 @@ static void mtv_signal_handler(int signum)
 {
   switch(signum) {
     case SIGINT:
-      shutdown(mtv_get_options()->sockfd, 0);
+      shutdown(mtv_get_options()->sockfd, SHUT_RDWR);
       break;
   }
 }
