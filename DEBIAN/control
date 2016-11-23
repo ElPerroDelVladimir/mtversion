@@ -1,0 +1,7 @@
+Package: mtversion
+Version: 0.0.2-1
+Architecture: amd64
+Maintainer: Vladimir Ermolenko
+Depends: libc6 (>= 2.14)
+Priority: optional
+Description: mtversion server
