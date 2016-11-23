@@ -1,0 +1,113 @@
+#!/bin/bash
+# /etc/init.d/mtversion
+# mtversion daemon control script
+#
+### BEGIN INIT INFO
+# Provides:          mtversion
+# Required-Start:    $remote_fs $syslog $network
+# Required-Stop:     $remote_fs $syslog $network
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: mtversion control script
+# Description:       mtversion daemon control script
+### END INIT INFO
+#
+# Vladimir Ermolenko <eromlenkov@gmail.com>
+
+DESC="mtversion daemon"
+NAME=mtversion
+SCRIPTNAME=/etc/init.d/$NAME
+
+[ -r /etc/default/$NAME ] && . /etc/default/$NAME || exit 100
+
+DAEMON=/usr/local/bin/mtversion
+DAEMON_ARGS=$MTVARGS
+
+if [ $(id -u) -ne 0 ]; then
+    echo "The $NAME init script can only be run as root"
+    exit 1
+fi
+
+check_port()
+{
+  local assigned=$1
+  local default=$2
+
+  if [ -n "$assigned" ]; then
+    port=$assigned
+  else
+    port=$default
+  fi
+
+  count=$(netstat --listen --numeric-ports | grep $port[[:space:]] | grep -c .)
+
+  if [ $count -ne 0 ]; then
+    echo "the selected port ($port) already in use "
+    return 1
+  fi
+
+  return 0
+}
+
+check_process()
+{
+  if [ -f $PIDFILE ]; then
+    local pid=$(cat $PIDFILE)
+    if [ -d /proc/$pid ]; then
+      echo "Daemon already running (pid=$pid)"
+      return 0
+    else
+      echo "Daemon isn't running but pidfile exist"
+      return 1
+    fi
+  else
+    echo "Daemon is not running"
+    return 2
+  fi
+}
+
+do_start()
+{
+  echo -n "Starting daemon..."
+  check_port "$PORT" "31337" || exit 1
+  $DAEMON $DAEMON_ARGS && echo "Ok!" || echo "Failed!" && exit 2
+}
+
+do_stop()
+{
+  echo "Stopping daemon..." && check_process && kill -s SIGINT $(cat $PIDFILE) && echo "Ok!" || echo "Failed!"
+}
+
+case "$1" in
+  start)
+    check_process
+    case "$?" in
+      1)
+        echo -n "Removing pid file... " && rm -f $PIDFILE && echo "Ok" && do_start || echo "Failed!"; exit 1
+      ;;
+
+      2)
+        do_start
+      ;;
+    esac
+  ;;
+
+  stop)
+    do_stop
+  ;;
+
+  restart)
+    do_stop
+    do_start
+  ;;
+
+  status)
+    check_process
+  ;;
+
+  *)
+    echo "Usage: $SCRIPTNAME {start|stop|restart|status}" >&2
+  ;;
+esac
+
+exit 0
