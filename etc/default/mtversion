@@ -1,0 +1,10 @@
+# Defaults for mtversion daemon
+
+NAME=mtversion
+
+PIDFILE=/var/lock/$NAME.lock
+
+# port for clients
+PORT=31337
+
+MTVARGS="-p $PORT -l $PIDFILE"
